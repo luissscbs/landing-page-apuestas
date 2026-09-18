@@ -3,25 +3,25 @@ import { SITE } from "@/lib/site";
 
 const BENEFITS = [
   {
-    icon: "⚡",
+    icon: "01",
     tag: "Margen < 3.2%",
     title: "Cuotas con Menor Margen",
     text: "Minimizamos el sobreprecio de la casa para ofrecer pagos más altos en cada partido de fútbol y grandes ligas mundiales.",
   },
   {
-    icon: "🧠",
+    icon: "02",
     tag: "IA & Estadística",
     title: "Modelos Probabilísticos",
     text: "Algoritmos Dixon-Coles y Machine Learning calculan las probabilidades reales de cada evento, ayudándote a tomar decisiones informadas.",
   },
   {
-    icon: "💸",
+    icon: "03",
     tag: "Instant Payout",
     title: "Retiros en Menos de 15 Minutos",
     text: "Procesamiento automatizado de pagos directos a tu banco o monedero electrónico sin esperas ni comisiones injustificadas.",
   },
   {
-    icon: "🛡️",
+    icon: "04",
     tag: "+18 Seguro",
     title: "Juego Seguro y Control",
     text: "Herramientas integradas para definir límites de depósito, tiempo de sesión y autoexclusión. Tu entretenimiento protegido siempre.",

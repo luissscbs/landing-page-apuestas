@@ -8,19 +8,27 @@ import { FALLBACK_ODDS, type MatchOdds } from "@/lib/cbs";
 import { SITE } from "@/lib/site";
 
 const CATEGORIES = [
-  { id: "all", label: "🔥 Todos los partidos" },
-  { id: "live", label: "🔴 En Vivo" },
-  { id: "laliga", label: "🇪🇸 LaLiga" },
-  { id: "premier", label: "🏴󠁧󠁢󠁥󠁮󠁧󠁿 Premier League" },
-  { id: "champions", label: "🏆 Champions" },
-  { id: "latam", label: "🌎 Sudamérica / MX" },
+  { id: "all", label: "Todos los partidos" },
+  { id: "value", label: "Top Picks +EV" },
+  { id: "live", label: "En Vivo" },
+  { id: "laliga", label: "LaLiga" },
+  { id: "premier", label: "Premier League" },
+  { id: "champions", label: "Champions" },
+  { id: "latam", label: "Sudamérica / MX" },
 ] as const;
 
-export default function UpcomingMatches({ initialOdds = FALLBACK_ODDS }: { initialOdds?: MatchOdds[] }) {
+export default function UpcomingMatches({
+  initialOdds = FALLBACK_ODDS,
+  oddsSource = "static",
+}: {
+  initialOdds?: MatchOdds[];
+  oddsSource?: "static" | "api";
+}) {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
 
   const filteredMatches = initialOdds.filter((m) => {
     if (selectedCategory === "all") return true;
+    if (selectedCategory === "value") return !!m.ml?.valueBet && m.ml.valueBet.expectedValuePct > 0;
     if (selectedCategory === "live") return !!m.live;
     return m.category === selectedCategory;
   });
@@ -34,8 +42,26 @@ export default function UpcomingMatches({ initialOdds = FALLBACK_ODDS }: { initi
           sub="Cuotas calculadas con margen ultra bajo y contrastadas contra nuestros modelos de probabilidad predictiva."
         />
 
+        {/* Indicador de conexión con Backend FastAPI */}
+        <div className="mt-4 flex items-center justify-end">
+          {oddsSource === "api" ? (
+            <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-750 text-emerald-300 backdrop-blur">
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-400" />
+              </span>
+              <span>API FastAPI conectada (:8000) · Algoritmos Dixon-Coles</span>
+            </div>
+          ) : (
+            <div className="inline-flex items-center gap-1.5 rounded-full border border-zinc-700 bg-zinc-800/50 px-3 py-1 text-xs font-450 text-zinc-400">
+              <span className="h-1.5 w-1.5 rounded-full bg-zinc-500" />
+              <span>Modo catálogo de respaldo (Fallback)</span>
+            </div>
+          )}
+        </div>
+
         {/* Barra de Filtros por Competición */}
-        <div className="mt-8 flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
+        <div className="mt-6 flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
           {CATEGORIES.map((cat) => {
             const active = selectedCategory === cat.id;
             return (

@@ -109,20 +109,112 @@ def predict_1x2(
     lambda_home: float, lambda_away: float, rho: float = -0.12, max_goals: int = 10
 ) -> dict[str, float]:
     """Matriz Poisson 0..max_goals con ajuste tau en marcadores bajos."""
+    m = scoreline_matrix(lambda_home, lambda_away, rho, max_goals)
+    home = sum(p for (x, y), p in m.items() if x > y)
+    draw = sum(p for (x, y), p in m.items() if x == y)
+    away = sum(p for (x, y), p in m.items() if x < y)
+    tot = home + draw + away
+    return {"home": home / tot, "draw": draw / tot, "away": away / tot}
+
+
+# ── 2b. Matriz de marcadores + mercados derivados ────────────────
+
+def scoreline_matrix(
+    lambda_home: float, lambda_away: float, rho: float = -0.12, max_goals: int = 10
+) -> dict[tuple[int, int], float]:
+    """P(x, y) normalizada: Poisson independiente + tau Dixon-Coles."""
     ph = [poisson_pmf(lambda_home, i) for i in range(max_goals + 1)]
     pa = [poisson_pmf(lambda_away, j) for j in range(max_goals + 1)]
-    home = draw = away = 0.0
+    m: dict[tuple[int, int], float] = {}
+    tot = 0.0
     for x in range(max_goals + 1):
         for y in range(max_goals + 1):
             p = ph[x] * pa[y] * tau_correction(lambda_home, lambda_away, rho, x, y)
-            if x > y:
-                home += p
-            elif x == y:
-                draw += p
-            else:
-                away += p
-    tot = home + draw + away
-    return {"home": home / tot, "draw": draw / tot, "away": away / tot}
+            m[(x, y)] = p
+            tot += p
+    return {k: v / tot for k, v in m.items()}
+
+
+def derive_markets(matrix: dict[tuple[int, int], float]) -> dict:
+    """BTTS / Over-Under 2.5 / Doble oportunidad desde P(x, y)."""
+    btts_yes = sum(p for (x, y), p in matrix.items() if x >= 1 and y >= 1)
+    over = sum(p for (x, y), p in matrix.items() if x + y >= 3)
+    home = sum(p for (x, y), p in matrix.items() if x > y)
+    draw = sum(p for (x, y), p in matrix.items() if x == y)
+    away = sum(p for (x, y), p in matrix.items() if x < y)
+    return {
+        "btts": {"yes": btts_yes, "no": 1.0 - btts_yes},
+        "overUnder25": {"over": over, "under": 1.0 - over},
+        "doubleChance": {
+            "1X": home + draw,
+            "12": home + away,
+            "X2": draw + away,
+        },
+    }
+
+
+def fit_market_lambdas(
+    target_1x2: dict[str, float],
+    rho: float = -0.12,
+    total: float | None = None,
+) -> tuple[float, float]:
+    """Lambdas (lh, la) cuya matriz 1X2 mejor aproxima el 1X2 implícito
+    del mercado (vig removido). Rejilla sobre (total, diferencia) para
+    derivar las cuotas de mercado de BTTS/OU/DC sin circularidad:
+    el modelo opina (Elo) y el mercado opina (triple real).
+
+    Con total fijado (recomendado: el total del modelo) solo se ajusta
+    la diferencia: el 1X2 no identifica el nivel de goles y dejarlo
+    libre genera EVs espurios en OU/BTTS. Así el desacuerdo
+    mercado-vs-modelo vive en la supremacía, que sí observa el triple.
+    """
+    totals = [round(total, 3)] if total is not None else [round(1.0 + 0.1 * i, 10) for i in range(41)]
+    best: tuple[float, float, float] | None = None  # (sse, lh, la)
+    for t in totals:
+        diff = -3.0
+        while diff <= 3.01:
+            lh, la = (t + diff) / 2, (t - diff) / 2
+            if 0.15 <= lh <= 5.0 and 0.15 <= la <= 5.0:
+                pr = predict_1x2(round(lh, 3), round(la, 3), rho)
+                sse = sum((pr[k] - target_1x2[k]) ** 2 for k in ("home", "draw", "away"))
+                if best is None or sse < best[0]:
+                    best = (sse, round(lh, 3), round(la, 3))
+            diff = round(diff + 0.05, 10)
+    assert best is not None
+    return (best[1], best[2])
+
+
+def price_selection(
+    prob_model: float, prob_market: float, margin: float = 1.05
+) -> dict:
+    """Una opción: fair del modelo, cuota de mercado con margen sobre la
+    prob de mercado, EV y Kelly del modelo vs esa cuota.
+
+    {"odds": mkt, "prob": modelo, "fairOdds": 1/modelo, "ev": %, "kelly": %}
+    """
+    pm = max(1e-6, min(0.999, prob_market))
+    odds = round((1.0 / pm) / margin, 2)
+    p = max(1e-6, min(0.999, prob_model))
+    return {
+        "odds": odds,
+        "prob": round(prob_model, 3),
+        "fairOdds": round(1.0 / p, 2),
+        "ev": round((prob_model * odds - 1.0) * 100, 1),
+        "kelly": round(kelly_stake(prob_model, odds) * 100, 1),
+    }
+
+
+def build_markets(
+    derived_model: dict, derived_market: dict, margin: float = 1.05
+) -> dict:
+    """Precio completo {btts, overUnder25, doubleChance}."""
+    return {
+        mkt: {
+            sel: price_selection(p, derived_market[mkt][sel], margin)
+            for sel, p in sels.items()
+        }
+        for mkt, sels in derived_model.items()
+    }
 
 
 def lambdas_from_elo(

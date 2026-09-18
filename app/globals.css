@@ -16,6 +16,14 @@
   --color-cbs-cyan: #06b6d4;   /* Tech cyan for ML */
 }
 
+.font-450 {
+  font-weight: 450;
+}
+
+.font-750 {
+  font-weight: 750;
+}
+
 html {
   scroll-behavior: smooth;
   color-scheme: dark;

@@ -40,6 +40,8 @@ yarn-error.log*
 # pipeline datos (CSV crudos + normalizados locales)
 data/*.csv
 data/*.parquet
+# caché local de The Odds API (contiene snapshots; se regenera solo)
+data/live_odds_cache.json
 __pycache__/
 *.pyc
 

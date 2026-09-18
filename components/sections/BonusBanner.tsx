@@ -15,7 +15,7 @@ export default function BonusBanner() {
           <div className="relative grid gap-8 md:grid-cols-[1.3fr_0.7fr] md:items-center">
             <div>
               <div className="inline-flex items-center gap-2 rounded-full border border-lime-400/30 bg-lime-400/10 px-3 py-1 text-xs font-750 text-lime-300">
-                <span>🎁 Promoción Exclusiva Nuevos Usuarios</span>
+                <span>Promoción Exclusiva Nuevos Usuarios</span>
               </div>
               <h2 className="mt-4 text-3xl font-750 tracking-tight text-white sm:text-4xl md:text-5xl">
                 Bono 100% hasta <span className="text-lime-400">$100 USD</span>

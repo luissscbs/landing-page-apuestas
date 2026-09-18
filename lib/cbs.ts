@@ -20,12 +20,37 @@ export type MlPrediction = {
     confidence: "alta" | "media" | "moderada";
     recommendedKellyStakePct: number;
   };
+  warning?: string | null;
+};
+
+export type MarketOption = {
+  odds: number;
+  prob: number;
+  fairOdds: number;
+  ev: number;
+  kelly: number;
+};
+
+export type MatchMarkets = {
+  btts?: {
+    yes: MarketOption;
+    no: MarketOption;
+  };
+  overUnder25?: {
+    over: MarketOption;
+    under: MarketOption;
+  };
+  doubleChance?: {
+    "1X": MarketOption;
+    "12": MarketOption;
+    "X2": MarketOption;
+  };
 };
 
 export type MatchOdds = {
   id: string;
   league: string;
-  category: "all" | "laliga" | "premier" | "champions" | "latam" | "live";
+  category: "all" | "laliga" | "premier" | "seriea" | "bundesliga" | "champions" | "latam" | "live" | string;
   home: string;
   away: string;
   homeShort: string;
@@ -41,6 +66,8 @@ export type MatchOdds = {
     away: "up" | "down" | "flat";
   };
   ml?: MlPrediction;
+  markets?: MatchMarkets;
+  xg?: { home: number; away: number };
 };
 
 export const FALLBACK_ODDS: MatchOdds[] = [
@@ -232,21 +259,64 @@ export function getEventUrl(
   return withTracking(`${baseAppUrl()}/evento/${eventId}`, medium, campaign);
 }
 
+export type BackendHealth = {
+  status: string;
+  service: string;
+  matches?: number;
+  odds_snapshots?: number;
+  seasons?: string[];
+  leagues?: string[];
+  last_match_date?: string;
+  data_mode?: string;
+  model?: string;
+};
+
+export async function getBackendHealth(): Promise<BackendHealth | null> {
+  const apiUrl =
+    process.env.NEXT_PUBLIC_CBS_API_URL ??
+    process.env.NEXT_PUBLIC_P50_API_URL ??
+    "http://127.0.0.1:8000/api/v1";
+  const baseUrl = apiUrl.replace(/\/api\/v1\/?$/, "");
+
+  try {
+    const res = await fetch(`${baseUrl}/health`, {
+      next: { revalidate: 15 },
+    });
+    if (res.ok) {
+      return (await res.json()) as BackendHealth;
+    }
+  } catch {
+    // fallback
+  }
+  return null;
+}
+
 export type OddsResult = { data: MatchOdds[]; source: "static" | "api" };
 
 export async function getUpcomingOdds(): Promise<OddsResult> {
-  const apiUrl = process.env.NEXT_PUBLIC_CBS_API_URL ?? process.env.NEXT_PUBLIC_P50_API_URL;
+  const apiUrl =
+    process.env.NEXT_PUBLIC_CBS_API_URL ??
+    process.env.NEXT_PUBLIC_P50_API_URL ??
+    "http://127.0.0.1:8000/api/v1";
   const apiKey = process.env.CBS_API_KEY ?? process.env.P50_API_KEY;
 
-  if (apiUrl && apiKey) {
+  if (apiUrl) {
     try {
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+      };
+      if (apiKey) {
+        headers["x-api-key"] = apiKey;
+      }
       const res = await fetch(`${apiUrl}/odds/upcoming?sport=futbol&limit=8`, {
-        headers: { "x-api-key": apiKey },
+        headers,
         next: { revalidate: 30 },
       });
       if (res.ok) {
         const data = (await res.json()) as MatchOdds[];
-        return { data, source: "api" };
+        if (Array.isArray(data) && data.length > 0) {
+          return { data, source: "api" };
+        }
       }
     } catch {
       // Fallback limpio y silencioso si la API no está disponible
@@ -255,3 +325,202 @@ export async function getUpcomingOdds(): Promise<OddsResult> {
 
   return { data: FALLBACK_ODDS, source: "static" };
 }
+
+export async function getValuePredictions(minEvPct = 5.0): Promise<MatchOdds[]> {
+  const apiUrl =
+    process.env.NEXT_PUBLIC_CBS_API_URL ??
+    process.env.NEXT_PUBLIC_P50_API_URL ??
+    "http://127.0.0.1:8000/api/v1";
+  const apiKey = process.env.CBS_API_KEY ?? process.env.P50_API_KEY;
+
+  if (apiUrl) {
+    try {
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+      };
+      if (apiKey) {
+        headers["x-api-key"] = apiKey;
+      }
+      const res = await fetch(`${apiUrl}/predictions/value?min_ev_pct=${minEvPct}`, {
+        headers,
+        next: { revalidate: 30 },
+      });
+      if (res.ok) {
+        const data = (await res.json()) as MatchOdds[];
+        if (Array.isArray(data)) {
+          return data;
+        }
+      }
+    } catch {
+      // Fallback limpio a filtro local
+    }
+  }
+
+  return FALLBACK_ODDS.filter(
+    (m) => (m.ml?.valueBet?.expectedValuePct ?? 0) >= minEvPct
+  );
+}
+
+export type BacktestSummary = {
+  total_bets: number;
+  won: number;
+  lost: number;
+  win_rate_pct: number;
+  win_rate_expected_pct: number;
+  total_staked: number;
+  net_profit: number;
+  roi_pct: number;
+  avg_odds: number;
+  max_drawdown_pct: number;
+};
+
+export type BacktestOddsTier = {
+  total_bets: number;
+  won: number;
+  lost: number;
+  win_rate_pct: number;
+  win_rate_expected_pct: number;
+  total_staked: number;
+  net_profit: number;
+  roi_pct: number;
+  avg_odds: number;
+  max_drawdown_pct: number;
+};
+
+export type BacktestRecentBet = {
+  id: string;
+  date: string;
+  match: string;
+  league: string;
+  selection: string;
+  odds: number;
+  prob: number;
+  ev: number;
+  result: "won" | "lost";
+  profit: number;
+  stake_kelly?: number;
+  profit_kelly?: number;
+  warned?: boolean;
+  clv?: number | null;
+};
+
+export type BacktestPerformance = {
+  params?: Record<string, unknown>;
+  summary: BacktestSummary;
+  kelly?: Record<string, unknown>;
+  production?: Record<string, unknown>;
+  clv_mean_pct?: number;
+  clv_n?: number;
+  by_league: Record<string, BacktestOddsTier>;
+  by_odds: {
+    low: BacktestOddsTier;
+    mid: BacktestOddsTier;
+    high: BacktestOddsTier;
+  };
+  recent_bets: BacktestRecentBet[];
+  equity?: number[];
+};
+
+export async function getBacktestPerformance(): Promise<BacktestPerformance | null> {
+  const apiUrl =
+    process.env.NEXT_PUBLIC_CBS_API_URL ??
+    process.env.NEXT_PUBLIC_P50_API_URL ??
+    "http://127.0.0.1:8000/api/v1";
+  const apiKey = process.env.CBS_API_KEY ?? process.env.P50_API_KEY;
+
+  if (apiUrl) {
+    try {
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+      };
+      if (apiKey) {
+        headers["x-api-key"] = apiKey;
+      }
+      const res = await fetch(`${apiUrl}/backtest/performance`, {
+        headers,
+        next: { revalidate: 60 },
+      });
+      if (res.ok) {
+        return (await res.json()) as BacktestPerformance;
+      }
+    } catch {
+      // Fallback limpio
+    }
+  }
+  return null;
+}
+
+export type PaperBet = {
+  id: string;
+  card_id: string;
+  match: string;
+  league: string;
+  league_code: string;
+  home: string;
+  away: string;
+  home_canonical: string;
+  away_canonical: string;
+  selection: "home" | "draw" | "away" | string;
+  odds: number;
+  prob: number;
+  ev_pct: number;
+  confidence: string;
+  fair_odds: number;
+  stake: number;
+  stake_mode: "flat" | "kelly" | string;
+  fallback: boolean;
+  potential_profit: number;
+  starts_at: string;
+  placed_at: string;
+  status: "PENDING" | "WON" | "LOST" | string;
+  result?: string | null;
+  profit?: number | null;
+  settled_at?: string | null;
+  home_score?: number | null;
+  away_score?: number | null;
+  score_source?: string | null;
+};
+
+export type PaperTradingSummary = {
+  bankroll: number;
+  initial_bankroll: number;
+  profit_net: number;
+  roi_pct: number;
+  total_bets: number;
+  won: number;
+  lost: number;
+  pending: number;
+  active_bets: PaperBet[];
+  history: PaperBet[];
+};
+
+export async function getPaperTradingSummary(): Promise<PaperTradingSummary | null> {
+  const apiUrl =
+    process.env.NEXT_PUBLIC_CBS_API_URL ??
+    process.env.NEXT_PUBLIC_P50_API_URL ??
+    "http://127.0.0.1:8000/api/v1";
+  const apiKey = process.env.CBS_API_KEY ?? process.env.P50_API_KEY;
+
+  if (apiUrl) {
+    try {
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+      };
+      if (apiKey) {
+        headers["x-api-key"] = apiKey;
+      }
+      const res = await fetch(`${apiUrl}/paper-trading/summary`, {
+        headers,
+        cache: "no-store",
+      });
+      if (res.ok) {
+        return (await res.json()) as PaperTradingSummary;
+      }
+    } catch {
+      // Fallback limpio
+    }
+  }
+  return null;
+}
+
+

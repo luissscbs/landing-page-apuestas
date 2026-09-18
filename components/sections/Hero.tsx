@@ -3,9 +3,18 @@
 import { useEffect, useState } from "react";
 import CtaButton from "@/components/ui/CtaButton";
 import { trackViewHero, trackOddsClick } from "@/lib/analytics";
+import type { MatchOdds } from "@/lib/cbs";
 import { SITE } from "@/lib/site";
+import { useBetSlip } from "@/context/BetSlipContext";
 
-export default function Hero({ campaign }: { campaign?: string }) {
+export default function Hero({
+  campaign,
+  featuredMatch,
+}: {
+  campaign?: string;
+  featuredMatch?: MatchOdds;
+}) {
+  const { selectBet } = useBetSlip();
   const [selectedPick, setSelectedPick] = useState<"home" | "draw" | "away">("home");
   const [stake, setStake] = useState<number>(25);
 
@@ -13,19 +22,64 @@ export default function Hero({ campaign }: { campaign?: string }) {
     trackViewHero(campaign);
   }, [campaign]);
 
-  // Datos del partido estelar en Hero
-  const match = {
-    id: "rm-bar",
-    home: "Real Madrid",
-    away: "FC Barcelona",
-    league: "LaLiga · Sábado 19:00",
-    odds: { home: 2.15, draw: 3.40, away: 3.10 },
-    ml: {
-      prob: "51.2%",
-      ev: "+9.6% EV",
-      fairOdds: "1.96",
-    },
+  const handleSelectAndOpen = (pick: "home" | "draw" | "away") => {
+    setSelectedPick(pick);
+    const rawMatch: MatchOdds = featuredMatch ?? {
+      id: "rm-bar",
+      league: "LaLiga · España",
+      category: "laliga",
+      home: "Real Madrid",
+      away: "FC Barcelona",
+      homeShort: "RMA",
+      awayShort: "FCB",
+      startsAt: "2026-09-20T19:00:00Z",
+      odds: { home: 2.15, draw: 3.40, away: 3.10 },
+      ml: {
+        probabilities: { home: 0.512, draw: 0.268, away: 0.220 },
+        fairOdds: { home: 1.96, draw: 3.73, away: 4.55 },
+        valueBet: {
+          selection: "home",
+          expectedValuePct: 9.6,
+          confidence: "alta",
+          recommendedKellyStakePct: 2.4,
+        },
+      },
+    };
+    selectBet(rawMatch, pick);
   };
+
+  // Datos del partido estelar en Hero (conectado al Backend FastAPI o fallback)
+  const match = featuredMatch
+    ? {
+        id: featuredMatch.id,
+        home: featuredMatch.home,
+        away: featuredMatch.away,
+        league: featuredMatch.league,
+        odds: featuredMatch.odds,
+        ml: {
+          prob: featuredMatch.ml
+            ? `${(featuredMatch.ml.probabilities.home * 100).toFixed(1)}%`
+            : "51.2%",
+          ev: featuredMatch.ml?.valueBet
+            ? `+${featuredMatch.ml.valueBet.expectedValuePct.toFixed(1)}% EV`
+            : "+9.6% EV",
+          fairOdds: featuredMatch.ml
+            ? featuredMatch.ml.fairOdds.home.toFixed(2)
+            : "1.96",
+        },
+      }
+    : {
+        id: "rm-bar",
+        home: "Real Madrid",
+        away: "FC Barcelona",
+        league: "LaLiga · Sábado 19:00",
+        odds: { home: 2.15, draw: 3.40, away: 3.10 },
+        ml: {
+          prob: "51.2%",
+          ev: "+9.6% EV",
+          fairOdds: "1.96",
+        },
+      };
 
   const currentOdds = match.odds[selectedPick];
   const potentialReturn = (stake * currentOdds).toFixed(2);
@@ -167,12 +221,12 @@ export default function Hero({ campaign }: { campaign?: string }) {
                     key={pick.key}
                     type="button"
                     onClick={() => {
-                      setSelectedPick(pick.key as "home" | "draw" | "away");
                       trackOddsClick(match.id, pick.key, pick.value);
+                      handleSelectAndOpen(pick.key as "home" | "draw" | "away");
                     }}
-                    className={`relative rounded-2xl border p-3 transition-all ${
+                    className={`relative rounded-2xl border p-3 transition-all cursor-pointer ${
                       active
-                        ? "border-lime-400 bg-lime-400/15 shadow-[0_0_15px_rgba(163,230,53,0.3)]"
+                        ? "border-lime-400 bg-lime-400/20 shadow-[0_0_15px_rgba(163,230,53,0.35)] scale-[1.02]"
                         : "border-white/10 bg-zinc-950/80 hover:border-white/20 hover:bg-zinc-900"
                     }`}
                   >
@@ -246,16 +300,17 @@ export default function Hero({ campaign }: { campaign?: string }) {
               </div>
             </div>
 
-            {/* CTA para cerrar la apuesta en CBS */}
-            <CtaButton
-              destination="event"
-              eventId={match.id}
-              medium="cta_hero_simulator"
-              campaign={campaign}
-              className="mt-5 w-full"
+            {/* CTA para abrir el Boleto con Asesor IA */}
+            <button
+              type="button"
+              onClick={() => handleSelectAndOpen(selectedPick)}
+              className="mt-5 flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-lime-400 via-lime-400 to-emerald-400 px-6 py-3.5 text-base font-900 text-zinc-950 shadow-[0_0_25px_rgba(163,230,53,0.35)] transition-all hover:scale-[1.02] hover:shadow-[0_0_35px_rgba(163,230,53,0.55)] active:scale-95 cursor-pointer"
             >
-              Apostar en CBS Sports · Cuota {currentOdds.toFixed(2)}
-            </CtaButton>
+              <span>Abrir Boleto IA · Cuota {currentOdds.toFixed(2)}</span>
+              <span className="text-xs font-750 bg-black/20 rounded-full px-2 py-0.5">
+                {match.ml.ev}
+              </span>
+            </button>
 
             <p className="mt-2.5 text-center text-[11px] text-zinc-500">
               Redirección cifrada a la plataforma oficial de {SITE.brand} · +18
