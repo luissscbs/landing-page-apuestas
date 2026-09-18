@@ -1,13 +1,13 @@
 "use client";
 
 import { trackCtaRegistro } from "@/lib/analytics";
-import { getEventUrl, getLoginUrl, getSignupUrl } from "@/lib/p50";
+import { getEventUrl, getLoginUrl, getSignupUrl } from "@/lib/cbs";
 
 type Destination = "register" | "login" | "event";
 
 type Props = {
   children: React.ReactNode;
-  variant?: "primary" | "ghost" | "dark";
+  variant?: "primary" | "ghost" | "dark" | "accent";
   destination?: Destination;
   eventId?: string;
   campaign?: string;
@@ -18,10 +18,13 @@ type Props = {
 
 const STYLES: Record<NonNullable<Props["variant"]>, string> = {
   primary:
-    "bg-lime-400 text-zinc-950 hover:bg-lime-300 font-750 shadow-[0_8px_30px_-8px_rgba(163,230,53,0.5)]",
+    "bg-lime-400 text-zinc-950 font-750 hover:bg-lime-300 hover:shadow-[0_0_24px_rgba(163,230,53,0.45)] transition-all duration-200",
   ghost:
-    "border border-white/20 text-white hover:bg-white/10 font-450",
-  dark: "bg-zinc-900 text-white border border-white/10 hover:bg-zinc-800 font-450",
+    "border border-white/15 text-white hover:bg-white/10 hover:border-white/30 font-450 transition-all duration-200",
+  dark:
+    "bg-zinc-900/90 text-white border border-white/10 hover:bg-zinc-800 hover:border-white/20 font-450 transition-all duration-200",
+  accent:
+    "bg-gradient-to-r from-lime-400 to-emerald-400 text-zinc-950 font-750 hover:brightness-110 hover:shadow-[0_0_25px_rgba(52,211,153,0.4)] transition-all duration-200",
 };
 
 function hasAgeCookie(): boolean {
@@ -52,7 +55,7 @@ export default function CtaButton({
     if (destination === "register" && !hasAgeCookie()) {
       e.preventDefault();
       window.dispatchEvent(
-        new CustomEvent("p50:age-gate", { detail: { href } })
+        new CustomEvent("cbs:age-gate", { detail: { href } })
       );
     }
   };
@@ -64,7 +67,7 @@ export default function CtaButton({
       rel="noopener sponsored"
       onClick={handleClick}
       aria-label={ariaLabel}
-      className={`inline-flex min-h-[44px] items-center justify-center rounded-full px-6 py-3 text-[15px] leading-6 transition-colors focus-visible:outline-lime-400 ${STYLES[variant]} ${className}`}
+      className={`inline-flex min-h-[46px] items-center justify-center rounded-full px-6 py-3 text-[15px] leading-6 select-none focus-visible:outline-lime-400 ${STYLES[variant]} ${className}`}
     >
       {children}
     </a>

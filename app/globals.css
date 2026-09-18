@@ -4,22 +4,26 @@
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system,
     "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 
-  /* Pesos Inter requeridos por diseño: 450 regular / 750 bold */
+  /* Pesos Inter para tipografía deportiva: 450 regular / 750 bold */
   --font-weight-450: 450;
   --font-weight-750: 750;
 
-  --color-p50-bg: #09090b;
-  --color-p50-card: #18181b;
-  --color-p50-accent: #a3e635;
+  --color-cbs-bg: #070709;
+  --color-cbs-surface: #121217;
+  --color-cbs-card: #181820;
+  --color-cbs-border: rgba(255, 255, 255, 0.08);
+  --color-cbs-accent: #a3e635; /* Electric lime */
+  --color-cbs-cyan: #06b6d4;   /* Tech cyan for ML */
 }
 
 html {
   scroll-behavior: smooth;
+  color-scheme: dark;
 }
 
 body {
-  background-color: #09090b;
-  color: #fafafa;
+  background-color: #070709;
+  color: #f4f4f5;
   font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   font-weight: 450;
   -webkit-font-smoothing: antialiased;
@@ -28,11 +32,30 @@ body {
 
 ::selection {
   background: #a3e635;
-  color: #09090b;
+  color: #070709;
 }
 
 /* Foco visible AA */
 :focus-visible {
   outline: 2px solid #a3e635;
   outline-offset: 2px;
+}
+
+/* Efectos visuales deportivos */
+.sports-glow {
+  background: radial-gradient(circle at 50% 0%, rgba(163, 230, 53, 0.15) 0%, transparent 65%);
+}
+
+.sports-grid {
+  background-size: 32px 32px;
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+}
+
+.glass-panel {
+  background: rgba(24, 24, 32, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }

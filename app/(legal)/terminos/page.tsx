@@ -1,3 +1,5 @@
+import { SITE } from "@/lib/site";
+
 export default function TerminosPage() {
   return (
     <main className="mx-auto max-w-3xl px-4 py-14 md:px-6">
@@ -5,28 +7,34 @@ export default function TerminosPage() {
       <h1 className="mt-3 text-3xl font-750 text-white">Términos y Condiciones</h1>
       <div className="mt-6 space-y-4 text-sm font-450 leading-7 text-zinc-300">
         <p>
-          Esta landing es informativa y de captación. No procesa apuestas ni pagos.
-          El registro, los depósitos y las apuestas ocurren exclusivamente en la
-          plataforma P50 Sports (+18).
+          Esta landing es informativa y de captación oficial para {SITE.brand}. No procesa apuestas ni cobros
+          directos en esta página. El registro, la custodia de fondos, los depósitos y las apuestas ocurren
+          exclusivamente en la plataforma autorizada de {SITE.brand} (+18).
         </p>
         <h2 id="bono" className="text-lg font-750 text-white">
-          Bono de bienvenida
+          Bono de bienvenida 100% hasta $100
         </h2>
         <p>
-          Bono 100% hasta $100. Rollover x8 en cuotas ≥1.80. Válido 7 días.
-          Depósito mínimo $10. Solo +18. Sujeto a verificación de identidad y
-          T&amp;C del operador P50. Juega con responsabilidad.
+          Duplicamos tu primer depósito hasta un máximo de $100 USD (o equivalente en moneda local). 
+          Condiciones aplicables: Rollover x8 sobre cuotas mínimas ≥ 1.80 en apuestas simples o combinadas. 
+          Vigencia de 7 días naturales desde el momento del registro. Depósito mínimo requerido: $10 USD. 
+          Válido solo para usuarios mayores de 18 años con identidad verificada. Juega con moderación.
         </p>
-        <h2 className="text-lg font-750 text-white">Edad y verificación</h2>
+        <h2 className="text-lg font-750 text-white">Edad mínima legal y verificación de identidad</h2>
         <p>
-          Solo mayores de 18 años. Se requiere verificación de edad antes del
-          registro. Nos reservamos redirigir únicamente a usuarios verificados.
+          El acceso está estrictamente restringido a personas de 18 años cumplidos o más (o la mayoría de edad 
+          legal aplicable en tu país de residencia). Se exigirá la verificación documental (KYC) antes de 
+          procesar cualquier retiro de fondos.
         </p>
-        <h2 className="text-lg font-750 text-white">Juego responsable</h2>
+        <h2 className="text-lg font-750 text-white">Políticas de Juego Responsable</h2>
         <p>
-          Las apuestas son entretenimiento, no una forma de ganar dinero ni una
-          solución económica. Usa límites y autoexclusión. Ver{" "}
-          <a className="underline" href="/juego-responsable">Juego responsable</a>.
+          Las apuestas deportivas son exclusivamente una actividad de entretenimiento y recreación, jamás deben 
+          considerarse un empleo, inversión con rendimiento asegurado ni método para solucionar problemas económicos. 
+          Ponemos a tu disposición herramientas para limitar depósitos diarios/semanales/mensuales, pausas temporales 
+          y autoexclusión definitiva. Consulta nuestra guía de{" "}
+          <a className="text-lime-400 underline" href="/juego-responsable">
+            Juego Responsable
+          </a>.
         </p>
       </div>
     </main>

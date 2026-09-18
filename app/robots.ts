@@ -2,7 +2,10 @@ import type { MetadataRoute } from "next";
 
 export default function robots(): MetadataRoute.Robots {
   return {
-    rules: [{ userAgent: "*", allow: "/" }],
-    sitemap: "https://p50sports.com/sitemap.xml",
+    rules: {
+      userAgent: "*",
+      allow: "/",
+    },
+    sitemap: "https://cbssports.com/sitemap.xml",
   };
 }

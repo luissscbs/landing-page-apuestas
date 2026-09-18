@@ -1,9 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import { SITE } from "@/lib/site";
 
-// Inter variable (100-900). Diseño usa 450 (regular) y 750 (bold).
-// next/font auto-hospeda y evita layout shift (display: swap).
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
@@ -11,40 +10,44 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://p50sports.com"),
-  title: "P50 Sports | Apuestas deportivas y cuotas en vivo",
+  metadataBase: new URL("https://cbssports.com"),
+  title: `${SITE.brand} | Apuestas Deportivas, Cuotas en Vivo y Modelos ML`,
   description:
-    "Apuesta al fútbol con cuotas competitivas, pagos rápidos y bono de bienvenida. Regístrate gratis en P50 Sports. +18 Juega con responsabilidad.",
+    "La casa de apuestas deportivas de alta precisión. Cuotas decimales con margen reducido, predicciones probabilísticas por Machine Learning y retiros instantáneos en menos de 15 min. +18 Juega con responsabilidad.",
   keywords: [
     "apuestas deportivas",
-    "P50 Sports",
-    "cuotas fútbol",
+    "CBS Sports",
+    "cuotas futbol",
+    "value bet",
+    "apuestas machine learning",
     "bono bienvenida",
     "apuestas en vivo",
+    "LaLiga cuotas",
+    "Premier League",
   ],
-  authors: [{ name: "P50 Sports" }],
+  authors: [{ name: SITE.brand }],
   robots: { index: true, follow: true },
   alternates: { canonical: "/" },
   openGraph: {
     type: "website",
     locale: "es_ES",
-    siteName: "P50 Sports",
-    title: "P50 Sports | Apuestas deportivas y cuotas en vivo",
+    siteName: SITE.brand,
+    title: `${SITE.brand} | Apuestas Deportivas y Modelos Probabilísticos`,
     description:
-      "Cuotas competitivas, pagos rápidos y bono de bienvenida. Crear cuenta gratis. +18",
-    images: [{ url: "/og-cover.jpg", width: 1200, height: 630, alt: "P50 Sports" }],
+      "Cuotas transparentes, análisis de valor (+EV) y bono de bienvenida 100% hasta $100. Crea tu cuenta gratis. +18",
+    images: [{ url: "/og-cover.jpg", width: 1200, height: 630, alt: SITE.brand }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "P50 Sports | Apuestas deportivas y cuotas en vivo",
+    title: `${SITE.brand} | Apuestas Deportivas y Cuotas en Vivo`,
     description:
-      "Cuotas competitivas, pagos rápidos y bono de bienvenida. Crear cuenta gratis. +18",
+      "Cuotas competitivas con margen reducido, predicciones probabilísticas por IA y retiros en minutos. +18",
     images: ["/og-cover.jpg"],
   },
 };
 
 export const viewport: Viewport = {
-  themeColor: "#09090b",
+  themeColor: "#070709",
   width: "device-width",
   initialScale: 1,
 };
@@ -52,10 +55,10 @@ export const viewport: Viewport = {
 const organizationJsonLd = {
   "@context": "https://schema.org",
   "@type": "SportsOrganization",
-  name: "P50 Sports",
-  url: "https://p50sports.com",
-  sport: "Fútbol",
-  description: "Apuestas deportivas online. Solo +18. Juega con responsabilidad.",
+  name: SITE.brand,
+  url: "https://cbssports.com",
+  sport: "Fútbol, Baloncesto, Tenis",
+  description: "Plataforma de apuestas deportivas online con tecnología de análisis predictivo. Solo +18. Juega con responsabilidad.",
 };
 
 export default function RootLayout({
@@ -65,7 +68,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="es" className={`${inter.variable} h-full antialiased`}>
-      <body className="min-h-full font-sans font-450 bg-zinc-950 text-zinc-50">
+      <body className="min-h-full font-sans font-450 bg-[#070709] text-zinc-100 selection:bg-lime-400 selection:text-black">
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{

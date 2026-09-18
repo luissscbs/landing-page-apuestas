@@ -1,29 +1,26 @@
 import SectionHeading from "@/components/ui/SectionHeading";
+import { SITE } from "@/lib/site";
 
 const FAQS = [
   {
-    q: "¿Es legal apostar en P50 Sports?",
-    a: "P50 opera según la licencia de cada país. Verifica que el operador esté autorizado en tu jurisdicción (España DGOJ, Colombia Coljuegos, México SEGOB, Argentina por provincia) antes de registrarte. Solo +18.",
+    q: `¿Es legal y seguro apostar en ${SITE.brand}?`,
+    a: `${SITE.brand} opera bajo licencias y normativas locales aplicables según la jurisdicción (España DGOJ, Colombia Coljuegos, México SEGOB, y licencias internacionales autorizadas). Todos los fondos de los usuarios están protegidos en cuentas segregadas y las transacciones se realizan bajo cifrado bancario SSL 256-bit. Solo +18.`,
   },
   {
-    q: "¿Cuál es la edad mínima?",
-    a: "18 años en todos los mercados. Pedimos verificación de edad antes de redirigirte al registro y nunca dirigimos publicidad a menores.",
+    q: "¿Qué significan los porcentajes de probabilidad y las cuotas de valor (+EV)?",
+    a: "Nuestros algoritmos estadísticos (basados en modelos Dixon-Coles y machine learning) analizan millones de datos históricos para calcular la probabilidad matemática real de cada partido. Cuando la cuota de la casa paga más de lo que indica la probabilidad real, se genera una apuesta con Valor Esperado Positivo (+EV).",
   },
   {
-    q: "¿Cómo retiro mis fondos?",
-    a: "Los retiros se hacen en la app segura de P50 Sports, nunca en esta landing. El promedio es menor a 24 h según el método de pago.",
+    q: "¿Cuánto tardan en procesarse los retiros de saldo?",
+    a: "La gran mayoría de los retiros se completan de forma automatizada en menos de 15 a 30 minutos a través de transferencias bancarias directas, tarjetas o billeteras electrónicas, una vez verificada la identidad del usuario (KYC).",
   },
   {
-    q: "¿Cómo funciona el bono de bienvenida?",
-    a: "Bono 100% hasta $100 con rollover x8 en cuotas ≥1.80, válido 7 días y depósito mínimo $10. Solo +18. Lee los T&C completos a un clic.",
+    q: "¿Cómo funciona el bono de bienvenida de $100?",
+    a: "Al registrarte y realizar tu primer depósito (mínimo $10 USD), acreditamos un bono del 100% hasta $100 USD. El requisito de apuesta (rollover) es de x8 en cuotas mínimas de 1.80 con una vigencia de 7 días naturales. Todos los términos son públicos y transparentes.",
   },
   {
-    q: "¿Las cuotas de esta página están en vivo?",
-    a: "En fase 1 mostramos cuotas de ejemplo. En fase 2 se conectarán a la API de P50 con actualización cada 30 segundos y aviso de última actualización.",
-  },
-  {
-    q: "¿Qué hago si el juego deja de ser divertido?",
-    a: "Usa límites de depósito y autoexclusión en P50 o contacta centros de ayuda de tu país. Ver página de Juego responsable. El juego es entretenimiento, no una fuente de ingresos.",
+    q: "¿Cómo garantizan el juego responsable?",
+    a: "En tu panel de usuario dispones de herramientas automáticas para fijar límites diarios, semanales o mensuales de depósito, pausas temporales y autoexclusión irreversible. Además, colaboramos activamente con entidades como FEJAR y Gambling Therapy. El juego debe ser siempre entretenimiento.",
   },
 ];
 
@@ -39,29 +36,34 @@ export const FAQ_JSON_LD = {
 
 export default function Faq() {
   return (
-    <section id="faq" className="bg-zinc-950 py-16 md:py-20">
+    <section id="faq" className="bg-[#070709] py-16 md:py-24 border-t border-white/5">
       <div className="mx-auto max-w-3xl px-4 md:px-6">
         <SectionHeading
-          eyebrow="FAQ"
-          title="Preguntas frecuentes"
+          eyebrow="Resolución de Dudas"
+          title="Preguntas Frecuentes"
+          sub="Todo lo que necesitas saber sobre seguridad, depósitos, retiros y cuotas matemáticas."
         />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(FAQ_JSON_LD) }}
         />
-        <div className="mt-8 space-y-3">
+        <div className="mt-10 space-y-4">
           {FAQS.map((f) => (
             <details
               key={f.q}
-              className="group rounded-2xl border border-white/10 bg-zinc-900 px-5 py-4"
+              className="group rounded-3xl border border-white/10 bg-zinc-900/60 px-6 py-5 transition-all open:border-lime-400/40 open:bg-zinc-900/90"
             >
-              <summary className="cursor-pointer list-none text-[15px] font-750 text-white [&::-webkit-details-marker]:hidden">
+              <summary className="cursor-pointer list-none text-base font-750 text-white [&::-webkit-details-marker]:hidden">
                 <span className="flex items-center justify-between gap-4">
-                  {f.q}
-                  <span className="text-lime-400 transition-transform group-open:rotate-45">+</span>
+                  <span>{f.q}</span>
+                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-zinc-800 text-lime-400 font-bold transition-transform group-open:rotate-45">
+                    +
+                  </span>
                 </span>
               </summary>
-              <p className="mt-3 text-sm font-450 leading-6 text-zinc-400">{f.a}</p>
+              <p className="mt-4 text-sm font-450 leading-relaxed text-zinc-300">
+                {f.a}
+              </p>
             </details>
           ))}
         </div>
